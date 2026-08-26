@@ -141,7 +141,8 @@ ph_min, ph_max = st.slider(
     min_value=0.0,
     max_value=14.0,
     value=(0.0, 14.0),
-    step=1.0
+    step=0.5,
+    format="%.1f"
 )
 
 
@@ -298,17 +299,33 @@ if simulate:
     )
 
 
-    for metal in selected_metals:
+# Create a large set of visually distinct colors
+color_maps = [
+    plt.cm.tab20,
+    plt.cm.tab20b,
+    plt.cm.tab20c
+]
 
-        ax.plot(
-            df_results["pH"],
-            df_results[metal["name"]],
-            label=(
-                f"{metal['name']} "
-                f"(Ksp = {metal['ksp']:.1e})"
-            ),
-            linewidth=2.5
-        )
+colors = []
+
+for cmap in color_maps:
+    colors.extend(
+        cmap(np.linspace(0, 1, 20))
+    )
+
+
+for i, metal in enumerate(selected_metals):
+
+    ax.plot(
+        df_results["pH"],
+        df_results[metal["name"]],
+        label=(
+            f"{metal['name']} "
+            f"(Ksp = {metal['ksp']:.1e})"
+        ),
+        linewidth=2.5,
+        color=colors[i % len(colors)]
+    )
 
 
     ax.set_title(
