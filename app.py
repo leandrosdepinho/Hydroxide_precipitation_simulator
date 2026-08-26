@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # ============================================================
-# HYDROXIDE PRECIPITATION SIMULATOR
+# PAGE CONFIGURATION
 # ============================================================
 
 st.set_page_config(
@@ -16,7 +16,7 @@ st.set_page_config(
 
 
 # ============================================================
-# DATABASE
+# HYDROXIDE DATABASE
 # ============================================================
 
 HYDROXIDE_DATABASE = {
@@ -98,14 +98,11 @@ selected_metals = []
 
 metal_names = list(HYDROXIDE_DATABASE.keys())
 
-# Three columns for the metal selection
 columns = st.columns(3)
 
 for i, metal in enumerate(metal_names):
 
-    column = columns[i % 3]
-
-    with column:
+    with columns[i % 3]:
 
         selected = st.checkbox(
             metal,
@@ -123,15 +120,20 @@ for i, metal in enumerate(metal_names):
             )
 
             selected_metals.append({
+
                 "name": metal,
+
                 "initial_conc": concentration,
+
                 "ksp": HYDROXIDE_DATABASE[metal]["ksp"],
+
                 "y": HYDROXIDE_DATABASE[metal]["y"]
+
             })
 
 
 # ============================================================
-# PH RANGE
+# pH RANGE
 # ============================================================
 
 st.subheader("pH Range")
@@ -185,8 +187,8 @@ if simulate:
         if metal["initial_conc"] <= 0:
 
             st.error(
-                f"Please enter a concentration greater than "
-                f"zero for {metal['name']}."
+                f"Please enter a concentration greater "
+                f"than zero for {metal['name']}."
             )
 
             st.stop()
@@ -246,8 +248,8 @@ if simulate:
             )
 
 
-            # The dissolved concentration cannot exceed
-            # the initial analytical concentration.
+            # Dissolved concentration cannot exceed
+            # the initial concentration.
 
             real_solubility = np.clip(
                 solubility_limit,
@@ -261,11 +263,16 @@ if simulate:
             # ------------------------------------------------
 
             precipitation_pct = (
+
                 (
                     metal["initial_conc"]
                     - real_solubility
                 )
-                / metal["initial_conc"]
+
+                /
+
+                metal["initial_conc"]
+
             ) * 100
 
 
@@ -294,39 +301,59 @@ if simulate:
 
     st.subheader("Precipitation Curve")
 
+
+    # Create figure and axes BEFORE plotting
     fig, ax = plt.subplots(
         figsize=(10, 6)
     )
 
 
-# Create a large set of visually distinct colors
-color_maps = [
-    plt.cm.tab20,
-    plt.cm.tab20b,
-    plt.cm.tab20c
-]
+    # --------------------------------------------------------
+    # Generate many distinct colors
+    # --------------------------------------------------------
 
-colors = []
+    color_maps = [
+        plt.cm.tab20,
+        plt.cm.tab20b,
+        plt.cm.tab20c
+    ]
 
-for cmap in color_maps:
-    colors.extend(
-        cmap(np.linspace(0, 1, 20))
-    )
+    colors = []
+
+    for cmap in color_maps:
+
+        colors.extend(
+            cmap(np.linspace(0, 1, 20))
+        )
 
 
-for i, metal in enumerate(selected_metals):
+    # --------------------------------------------------------
+    # Plot each selected metal
+    # --------------------------------------------------------
 
-    ax.plot(
-        df_results["pH"],
-        df_results[metal["name"]],
-        label=(
-            f"{metal['name']} "
-            f"(Ksp = {metal['ksp']:.1e})"
-        ),
-        linewidth=2.5,
-        color=colors[i % len(colors)]
-    )
+    for i, metal in enumerate(selected_metals):
 
+        ax.plot(
+
+            df_results["pH"],
+
+            df_results[metal["name"]],
+
+            label=(
+                f"{metal['name']} "
+                f"(Ksp = {metal['ksp']:.1e})"
+            ),
+
+            linewidth=2.5,
+
+            color=colors[i]
+
+        )
+
+
+    # --------------------------------------------------------
+    # Graph formatting
+    # --------------------------------------------------------
 
     ax.set_title(
         "Hydroxide Precipitation",
@@ -354,13 +381,16 @@ for i, metal in enumerate(selected_metals):
         100
     )
 
+
+    # pH axis in 0.5 increments
     ax.set_xticks(
         np.arange(
             ph_min,
-            ph_max + 1,
-            1
+            ph_max + 0.5,
+            0.5
         )
     )
+
 
     ax.set_yticks(
         np.arange(
@@ -370,16 +400,23 @@ for i, metal in enumerate(selected_metals):
         )
     )
 
+
     ax.grid(
         True,
         linestyle="--",
         alpha=0.5
     )
 
-    ax.legend()
+
+    ax.legend(
+        loc="best"
+    )
+
 
     fig.tight_layout()
 
+
+    # Display graph
     st.pyplot(fig)
 
 
@@ -412,6 +449,7 @@ for i, metal in enumerate(selected_metals):
         ]
 
     })
+
 
     st.dataframe(
         summary,
